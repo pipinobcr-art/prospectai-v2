@@ -901,7 +901,7 @@ td{padding:13px 14px;font-size:13px;vertical-align:middle;}
         </div>
       </div>
     </div>
-    <div class="price-grid" id="landing-price-grid"></div>
+    <div class="price-grid" id="landing-price-grid" style="grid-template-columns:repeat(4,1fr)"></div>
   </div>
 </section>
 
@@ -1037,7 +1037,7 @@ td{padding:13px 14px;font-size:13px;vertical-align:middle;}
     <button class="pft active" onclick="setPricingCycle('monthly')">Mensuel</button>
     <button class="pft" onclick="setPricingCycle('annual')">Annuel <span class="save-pill">−33%</span></button>
   </div>
-  <div class="pf-grid" id="pricing-plans-grid"></div>
+  <div class="pf-grid" id="pricing-plans-grid" style="grid-template-columns:repeat(4,1fr)"></div>
   <div class="pf-back">Déjà abonné ? <a onclick="loadApp()">Dashboard →</a></div>
 </div>
 
@@ -1109,6 +1109,10 @@ td{padding:13px 14px;font-size:13px;vertical-align:middle;}
   </aside>
   <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;background:var(--cream)">
     <div class="app-tb">
+      <div id="trial-banner" style="display:none;background:rgba(212,175,55,.1);border-bottom:1px solid rgba(212,175,55,.2);padding:8px 28px;align-items:center;justify-content:space-between;font-size:12px;color:var(--gold2);letter-spacing:.02em;position:absolute;top:56px;left:228px;right:0;z-index:10">
+        <span class="trial-txt"></span>
+        <button onclick="setPage('billing',document.querySelectorAll('.ni')[5])" class="btn btn-gold" style="padding:5px 14px;font-size:11px">Upgrader →</button>
+      </div>
       <div class="app-tb-t" id="app-tb-t">Recherche de prospects</div>
       <div class="cr-badge">Crédits <strong id="credit-count">0</strong></div>
       <button class="btn btn-ghost" onclick="openAIModal()">✨ AI Writer</button>
@@ -1158,14 +1162,16 @@ function goToAuth(tab){showScreen('auth');switchTab(tab||'login');}
 
 const PLANS={
   monthly:[
-    {key:'starter',name:'Starter',desc:'Pour débuter la prospection',price:29,credits:500,feats:['500 crédits par mois','5 000 prospects','Export CSV','Recherche avancée'],locked:['AI Writer','Enrichissement','API Access']},
-    {key:'pro',name:'Pro',desc:'Pour les équipes sérieuses',price:79,credits:2000,pop:true,feats:['2 000 crédits par mois','25 000 prospects','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement auto'],locked:['API Access']},
-    {key:'agency',name:'Agency',desc:'Pour les agences et grandes équipes',price:199,credits:10000,feats:['10 000 crédits par mois','Prospects illimités','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement','API + Webhooks'],locked:[]},
+    {key:'free',name:'Gratuit',desc:'Pour tester la plateforme',price:0,credits:50,feats:['50 crédits par mois','100 prospects accessibles','Export CSV','Recherche de base'],locked:['AI Writer','Enrichissement','API Access']},
+    {key:'standard',name:'Standard',desc:'Pour les commerciaux individuels',price:29,credits:500,feats:['500 crédits par mois','5 000 prospects','Export CSV illimité','Recherche avancée','AI Writer ✨'],locked:['Enrichissement auto','API Access']},
+    {key:'business',name:'Business',desc:'Pour les équipes commerciales',price:69,credits:2000,pop:true,feats:['2 000 crédits par mois','25 000 prospects','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement auto'],locked:['API Access']},
+    {key:'entreprise',name:'Entreprise',desc:'Pour les grandes équipes & agences',price:150,credits:10000,feats:['10 000 crédits par mois','Prospects illimités','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement auto','API Access + Webhooks'],locked:[]},
   ],
   annual:[
-    {key:'starter',name:'Starter',desc:'Pour débuter la prospection',price:19,ann:228,credits:500,feats:['500 crédits par mois','5 000 prospects','Export CSV','Recherche avancée'],locked:['AI Writer','Enrichissement','API Access']},
-    {key:'pro',name:'Pro',desc:'Pour les équipes sérieuses',price:53,ann:636,credits:2000,pop:true,feats:['2 000 crédits par mois','25 000 prospects','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement auto'],locked:['API Access']},
-    {key:'agency',name:'Agency',desc:'Pour les agences et grandes équipes',price:133,ann:1596,credits:10000,feats:['10 000 crédits par mois','Prospects illimités','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement','API + Webhooks'],locked:[]},
+    {key:'free',name:'Gratuit',desc:'Pour tester la plateforme',price:0,credits:50,feats:['50 crédits par mois','100 prospects accessibles','Export CSV','Recherche de base'],locked:['AI Writer','Enrichissement','API Access']},
+    {key:'standard',name:'Standard',desc:'Pour les commerciaux individuels',price:19,ann:228,credits:500,feats:['500 crédits par mois','5 000 prospects','Export CSV illimité','Recherche avancée','AI Writer ✨'],locked:['Enrichissement auto','API Access']},
+    {key:'business',name:'Business',desc:'Pour les équipes commerciales',price:46,ann:552,credits:2000,pop:true,feats:['2 000 crédits par mois','25 000 prospects','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement auto'],locked:['API Access']},
+    {key:'entreprise',name:'Entreprise',desc:'Pour les grandes équipes & agences',price:100,ann:1200,credits:10000,feats:['10 000 crédits par mois','Prospects illimités','Export illimité','Recherche avancée','AI Writer ✨','Enrichissement auto','API Access + Webhooks'],locked:[]},
   ]
 };
 const CK=`<svg viewBox="0 0 13 13" fill="none"><path d="M2 7l3 3 6-6" stroke="#16a34a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -1189,6 +1195,11 @@ function buildCards(plans,cycle,containerId,chooseFn){
       </ul>
       ${cur===p.key&&containerId!=='landing-price-grid'
         ?`<button class="pc-btn" style="background:var(--gold-pale);color:var(--gold2);border:1px solid rgba(212,175,55,.3);cursor:default" disabled>✓ Plan actuel</button>`
+        :p.price===0
+        ?`<button class="pc-btn outline" id="pbtn-${p.key}-${containerId}"
+            onclick="${chooseFn}('${p.key}','${p.name}',${p.price},${p.credits})">
+            Commencer gratuitement →
+          </button>`
         :`<button class="pc-btn ${p.pop?'gold':'outline'}" id="pbtn-${p.key}-${containerId}"
             onclick="${chooseFn}('${p.key}','${p.name}',${p.price},${p.credits})">
             Choisir ${p.name} →
@@ -1203,7 +1214,10 @@ function setLandingCycle(c,wrap){
   if(wrap)wrap.querySelectorAll('.pt').forEach((b,i)=>b.classList.toggle('active',(i===0&&c==='monthly')||(i===1&&c==='annual')));
   buildCards(PLANS[lCycle],lCycle,'landing-price-grid','goStartPlan');
 }
-function goStartPlan(){goToAuth('register');}
+function goStartPlan(key,name,price,credits){
+  // Depuis la landing — aller s'inscrire
+  goToAuth('register');
+}
 setLandingCycle('monthly');
 
 // Pricing full
@@ -1217,6 +1231,8 @@ function renderPricingPlans(){buildCards(PLANS[pCycle],pCycle,'pricing-plans-gri
 
 async function choosePlan(key,name,price,credits){
   const s=getS();if(!s){showScreen('auth');return;}
+  // Plan gratuit — activation directe
+  if(price===0){activatePlan(s.email,key,name,credits);return;}
   const btn=document.getElementById('pbtn-'+key+'-pricing-plans-grid');
   if(btn){btn.disabled=true;btn.innerHTML='<div class="spinner" style="width:16px;height:16px;margin:0 auto;border-color:rgba(212,175,55,.2);border-top-color:var(--gold)"></div>';}
   try{
@@ -1229,8 +1245,18 @@ async function choosePlan(key,name,price,credits){
 
 function activatePlan(email,key,name,credits){
   const u=getU();if(!u[email])return;
-  Object.assign(u[email],{plan:key,planName:name,credits,activatedAt:Date.now()});saveU(u);
+  const isFree=key==='free';
+  Object.assign(u[email],{
+    plan:key,planName:name,credits,
+    activatedAt:Date.now(),
+    freeExpiry:isFree?Date.now()+(2*24*60*60*1000):null
+  });
+  saveU(u);
   const s=getS();if(s){Object.assign(s,{plan:key,planName:name,credits});saveS(s);}
+  if(isFree){
+    // Plan gratuit → dashboard direct sans écran succès
+    loadApp();return;
+  }
   document.getElementById('success-plan-info').innerHTML=`Plan <strong>${name}</strong> activé · <span>${credits.toLocaleString()} crédits/mois</span>`;
   showScreen('success');
 }
@@ -1272,12 +1298,17 @@ function doRegister(){
   setTimeout(()=>{
     const u=getU();
     if(u[email]){showErr('reg-err','Cet email est déjà utilisé.');setBL('reg-btn',false,'Créer mon compte');return;}
-    u[email]={name,pass:btoa(pass),plan:null,planName:null,credits:0,joinedAt:Date.now()};
-    saveU(u);saveS({email,name,plan:null,planName:null,credits:0});
+    u[email]={name,pass:btoa(pass),plan:'free',planName:'Gratuit',credits:50,joinedAt:Date.now(),freeExpiry:Date.now()+(2*24*60*60*1000)};
+    saveU(u);saveS({email,name,plan:'free',planName:'Gratuit',credits:50});
     afterLogin(u[email]);
   },500);
 }
-function afterLogin(user){if(!user.plan){showScreen('pricing-full');renderPricingPlans();}else loadApp();}
+function afterLogin(user){
+  // Plan gratuit ou payant → dashboard direct
+  // Pas de plan du tout → page pricing
+  if(!user.plan){showScreen('pricing-full');renderPricingPlans();}
+  else loadApp();
+}
 function doLogout(){clrS();showScreen('landing');}
 
 // App
@@ -1290,6 +1321,23 @@ function loadApp(){
   document.getElementById('app-uname').textContent=s.name||s.email;
   document.getElementById('app-uplan').textContent=usr.planName||'Gratuit';
   document.getElementById('credit-count').textContent=(usr.credits||0).toLocaleString();
+  // Badge essai gratuit
+  const trialBanner=document.getElementById('trial-banner');
+  if(trialBanner){
+    if(usr.plan==='free'&&usr.freeExpiry){
+      const hoursLeft=Math.max(0,Math.round((usr.freeExpiry-Date.now())/(1000*60*60)));
+      const daysLeft=Math.ceil(hoursLeft/24);
+      if(daysLeft>0){
+        trialBanner.style.display='flex';
+        trialBanner.querySelector('.trial-txt').textContent=`Essai gratuit — encore ${daysLeft} jour${daysLeft>1?'s':''} · Passez à un plan payant pour continuer`;
+      }else{
+        trialBanner.style.display='flex';
+        trialBanner.querySelector('.trial-txt').textContent='Votre essai gratuit est expiré — choisissez un plan pour continuer';
+      }
+    }else{
+      trialBanner.style.display='none';
+    }
+  }
   showScreen('app');
   setPage('search',document.querySelector('.ni'));
 }
