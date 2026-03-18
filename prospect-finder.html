@@ -806,7 +806,7 @@ td{padding:13px 14px;font-size:13px;vertical-align:middle;}
               <div class="pcv-hot">🔥 HOT</div>
             </div>
             <div class="pcv-grid">
-              <div class="pcv-item"><div class="pcv-item-l">Email</div><div class="pcv-item-v">s.leclerc@scaleway.com ✓</div></div>
+              <div class="pcv-item"><div class="pcv-item-l">Email</div><div class="pcv-item-v"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e89bc6848d8b848d9a8ba89b8b89848d9f8991c68b8785">[email&#160;protected]</a> ✓</div></div>
               <div class="pcv-item"><div class="pcv-item-l">LinkedIn</div><div class="pcv-item-v">Vérifié ✓</div></div>
               <div class="pcv-item"><div class="pcv-item-l">Entreprise</div><div class="pcv-item-v">Scaleway · 201-500</div></div>
               <div class="pcv-item"><div class="pcv-item-l">Technologie</div><div class="pcv-item-v">HubSpot, Salesforce</div></div>
@@ -1145,7 +1145,7 @@ td{padding:13px 14px;font-size:13px;vertical-align:middle;}
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 const DB='pai_u',SES='pai_s';
 const getU=()=>{try{return JSON.parse(localStorage.getItem(DB))||{};}catch{return{};}};
 const saveU=u=>localStorage.setItem(DB,JSON.stringify(u));
@@ -1330,26 +1330,20 @@ function renderSearchPage(c){
     <div class="sp">
       <div class="sp-title">Filtres de recherche</div>
       <div class="fg">
-        <div class="fi"><label>Titre du poste</label><input type="text" value="Head of Growth" placeholder="VP Sales, CMO…"></div>
-        <div class="fi"><label>Industrie</label><select><option>SaaS / Logiciel</option><option>Fintech</option><option>E-Commerce</option><option>Healthcare</option></select></div>
-        <div class="fi"><label>Taille de l'entreprise</label><select><option>51 à 200 employés</option><option>1 à 10</option><option>201 à 500</option><option>500+</option></select></div>
-        <div class="fi"><label>Localisation</label><input type="text" value="France" placeholder="Paris, Lyon…"></div>
-        <div class="fi"><label>Séniorité</label><select><option>VP / Directeur</option><option>C-Level</option><option>Manager</option></select></div>
-        <div class="fi"><label>Technologie</label><input type="text" value="HubSpot" placeholder="Salesforce…"></div>
-        <div class="fi"><label>Chiffre d'affaires</label><select><option>1M€ à 10M€</option><option>Moins de 1M€</option><option>10M€ à 50M€</option></select></div>
-        <div class="fi"><label>Email disponible</label><select><option>Email vérifié uniquement</option><option>Tous les contacts</option></select></div>
+        <div class="fi"><label>Titre du poste</label><input id="filter-title" type="text" placeholder="VP Sales, CMO, Head of Growth…"></div>
+        <div class="fi"><label>Industrie</label><select id="filter-industry"><option value="">Toutes</option><option value="SaaS">SaaS / Logiciel</option><option value="Fintech">Fintech</option><option value="E-Commerce">E-Commerce</option><option value="Healthcare">Healthcare</option></select></div>
+        <div class="fi"><label>Taille de l'entreprise</label><select id="filter-size"><option value="">Toutes</option><option value="1 à 10">1 à 10</option><option value="51 à 200">51 à 200</option><option value="201 à 500">201 à 500</option><option value="500+">500+</option></select></div>
+        <div class="fi"><label>Localisation</label><input id="filter-location" type="text" placeholder="France, Paris, New York…"></div>
+        <div class="fi"><label>Séniorité</label><select id="filter-seniority"><option value="">Toutes</option><option value="VP / Directeur">VP / Directeur</option><option value="C-Level">C-Level</option><option value="Manager">Manager</option></select></div>
+        <div class="fi"><label>Technologie</label><input id="filter-tech" type="text" placeholder="HubSpot, Salesforce…"></div>
+        <div class="fi"><label>Chiffre d'affaires</label><select id="filter-revenue"><option value="">Tous</option><option value="1M€ à 10M€">1M€ à 10M€</option><option value="Moins de 1M€">Moins de 1M€</option><option value="10M€ à 50M€">10M€ à 50M€</option></select></div>
+        <div class="fi"><label>Email disponible</label><select id="filter-email"><option value="verified">Email vérifié uniquement</option><option value="all">Tous les contacts</option></select></div>
       </div>
-      <div class="tags" id="filter-tags">
-        <span class="tag">Head of Growth <button class="tag-x" onclick="this.closest('.tag').remove()">×</button></span>
-        <span class="tag">SaaS <button class="tag-x" onclick="this.closest('.tag').remove()">×</button></span>
-        <span class="tag">France <button class="tag-x" onclick="this.closest('.tag').remove()">×</button></span>
-        <span class="tag">HubSpot <button class="tag-x" onclick="this.closest('.tag').remove()">×</button></span>
-      </div>
+      <div class="tags" id="filter-tags"></div>
       <div class="sa">
         <button class="btn btn-gold" onclick="runSearch()">Lancer la recherche</button>
-        <button class="btn btn-ghost" onclick="document.getElementById('filter-tags').innerHTML='';showToast('Filtres réinitialisés')">Réinitialiser</button>
-        <button class="btn btn-ghost" onclick="showToast('Recherche sauvegardée')">Sauvegarder</button>
-        <span class="rc">8 sur 3 427 résultats</span>
+        <button class="btn btn-ghost" onclick="document.getElementById('filter-title').value='';document.getElementById('filter-location').value='';document.getElementById('filter-tech').value='';showToast('Filtres réinitialisés')">Réinitialiser</button>
+        <span class="rc" id="results-count">Lancez une recherche pour voir les résultats</span>
       </div>
     </div>
     <div class="rh">
@@ -1364,10 +1358,10 @@ function renderSearchPage(c){
           <th style="width:32px"><input type="checkbox" onchange="document.querySelectorAll('#ptbody input').forEach(c=>c.checked=this.checked)"></th>
           <th>Prospect</th><th>Entreprise</th><th>Localisation</th><th>Score</th><th>Statut</th><th>Actions</th>
         </tr></thead>
-        <tbody id="ptbody"></tbody>
+        <tbody id="ptbody"><tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">Utilisez les filtres ci-dessus et cliquez sur "Lancer la recherche" pour trouver de vrais prospects.</td></tr></tbody>
       </table>
       <div class="pg">
-        <span>Page 1 sur 429 — 3 427 résultats</span>
+        <span id="pg-info">—</span>
         <div class="pgb">
           <button class="pb">‹</button>
           <button class="pb act">1</button>
@@ -1379,54 +1373,158 @@ function renderSearchPage(c){
         </div>
       </div>
     </div>`;
-  buildTable();
 }
 
-function buildTable(){
+// ── APOLLO REAL DATA ──
+let currentProspects = [];
+let currentPage = 1;
+let totalResults = 0;
+
+const AVATAR_COLORS = [
+  {bg:'#dbeafe',cl:'#1d4ed8'},{bg:'#fdf8ec',cl:'#B8963E'},
+  {bg:'#dcfce7',cl:'#15803d'},{bg:'#fef9c3',cl:'#854d0e'},
+  {bg:'#fee2e2',cl:'#b91c1c'},{bg:'#ecfeff',cl:'#0e7490'},
+  {bg:'#f3e8ff',cl:'#7c3aed'},{bg:'#fce7f3',cl:'#be185d'},
+];
+
+function getAvatarColor(i){return AVATAR_COLORS[i%AVATAR_COLORS.length];}
+
+function buildTable(prospects){
   const tbody=document.getElementById('ptbody');if(!tbody)return;
-  tbody.innerHTML=PROSPECTS.map(p=>`
-    <tr>
+  if(!prospects||!prospects.length){
+    tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--muted);font-size:13px">Aucun prospect trouvé. Modifiez vos filtres.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=prospects.map((p,i)=>{
+    const col=getAvatarColor(i);
+    const scoreClass=p.score==='hot'?'hot':p.score==='warm'?'warm':'cold';
+    const scoreLabel=p.score==='hot'?'🔥 HOT':p.score==='warm'?'⚡ WARM':'❄️ COLD';
+    const dotClass=p.score==='hot'?'g':p.score==='warm'?'y':'r';
+    const pid=p.id||i;
+    return `<tr>
       <td><input type="checkbox"></td>
-      <td><div class="pcc"><div class="pav" style="background:${p.bg};color:${p.cl}">${p.av}</div><div><div class="pn">${p.name}</div><div class="pt">${p.title}</div></div></div></td>
-      <td><div class="cn">${p.company}</div><div class="cs">${p.size}</div></td>
-      <td style="font-size:12px;color:var(--muted)">${p.loc}</td>
-      <td><span class="badge ${p.score}">${p.score==='hot'?'🔥 HOT':p.score==='warm'?'⚡ WARM':'❄️ COLD'}</span></td>
-      <td><span class="dot ${p.st}"></span></td>
-      <td><div class="acts">
-        <button class="ab en" onclick="enrichP(${p.id})">⚡ Enrichir</button>
-        <button class="ab sv" id="sb-${p.id}" onclick="saveP(${p.id},this)">${savedSet.has(p.id)?'★ Sauvé':'☆ Sauver'}</button>
-        <button class="ab" onclick="showToast('${p.name} · ${p.company}')">Voir →</button>
+      <td><div class="pcc">
+        ${p.photo?`<img src="${p.photo}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display='none'">`:`<div class="pav" style="background:${col.bg};color:${col.cl}">${p.avatar||'??'}</div>`}
+        <div><div class="pn">${p.name}</div><div class="pt">${p.title}</div></div>
       </div></td>
-    </tr>`).join('');
+      <td><div class="cn">${p.company}</div><div class="cs">${p.size}</div></td>
+      <td style="font-size:12px;color:var(--muted)">${p.location}</td>
+      <td><span class="badge ${scoreClass}">${scoreLabel}</span></td>
+      <td><span class="dot ${dotClass}"></span></td>
+      <td><div class="acts">
+        <button class="ab en" onclick="enrichP('${pid}',this)">⚡ Enrichir</button>
+        <button class="ab sv" id="sb-${pid}" onclick="saveP('${pid}',this,${JSON.stringify(p).replace(/'/g,"&#39;")})">☆ Sauver</button>
+        ${p.linkedin?`<a href="${p.linkedin}" target="_blank" class="ab" style="text-decoration:none">LinkedIn →</a>`:`<button class="ab" onclick="showToast('${p.name} · ${p.company}')">Voir →</button>`}
+      </div></td>
+    </tr>`;
+  }).join('');
 }
 
-function runSearch(){
+async function runSearch(){
   const t=document.getElementById('ptable');const ss=document.getElementById('ssstate');
-  if(!t||!ss)return;t.style.opacity='.15';ss.classList.add('vis');
-  setTimeout(()=>{t.style.opacity='1';ss.classList.remove('vis');showToast('✓ 3 427 prospects trouvés');},1600);
+  if(!t||!ss)return;
+
+  // Lire les filtres
+  const filters={
+    title:        document.querySelector('#filter-title')?.value||'',
+    industry:     document.querySelector('#filter-industry')?.value||'',
+    company_size: document.querySelector('#filter-size')?.value||'',
+    location:     document.querySelector('#filter-location')?.value||'',
+    seniority:    document.querySelector('#filter-seniority')?.value||'',
+    technology:   document.querySelector('#filter-tech')?.value||'',
+    page: 1, per_page: 10
+  };
+
+  t.style.opacity='.15';ss.classList.add('vis');
+  document.querySelector('.rc') && (document.querySelector('.rc').textContent='Recherche en cours…');
+
+  try {
+    const resp = await fetch('/api/apollo/search', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(filters)
+    });
+    const data = await resp.json();
+
+    if(data.error){
+      ss.classList.remove('vis');t.style.opacity='1';
+      showToast('❌ Erreur Apollo: '+data.error);
+      return;
+    }
+
+    currentProspects = data.prospects||[];
+    totalResults = data.total||0;
+
+    buildTable(currentProspects);
+    t.style.opacity='1';ss.classList.remove('vis');
+
+    const pgInfo=document.getElementById('pg-info');
+    if(pgInfo) pgInfo.textContent=`Page 1 sur ${data.total_pages||1} — ${totalResults.toLocaleString()} résultats`;
+
+    const rc=document.getElementById('results-count');
+    if(rc) rc.textContent=`${currentProspects.length} sur ${totalResults.toLocaleString()} résultats`;
+
+    // Stats
+    const ss2=document.getElementById('stat-total');
+    if(ss2) ss2.textContent=totalResults.toLocaleString();
+
+    showToast(`✓ ${totalResults.toLocaleString()} prospects trouvés`);
+
+  } catch(e){
+    ss.classList.remove('vis');t.style.opacity='1';
+    showToast('❌ Erreur de connexion au serveur');
+    console.error(e);
+  }
 }
-function saveP(id,btn){
-  if(savedSet.has(id)){savedSet.delete(id);btn.textContent='☆ Sauver';btn.classList.remove('en');btn.classList.add('sv');}
-  else{savedSet.add(id);btn.textContent='★ Sauvé';btn.classList.remove('sv');btn.classList.add('en');showToast('Prospect sauvegardé !');}
+
+function saveP(id,btn,prospect){
+  if(savedSet.has(id)){
+    savedSet.delete(id);
+    btn.textContent='☆ Sauver';btn.classList.remove('en');btn.classList.add('sv');
+  } else {
+    savedSet.add(id);
+    btn.textContent='★ Sauvé';btn.classList.remove('sv');btn.classList.add('en');
+    showToast('Prospect sauvegardé !');
+  }
   const sc=document.getElementById('saved-count');if(sc){sc.textContent=savedSet.size;sc.style.display=savedSet.size>0?'':'none';}
   const ss=document.getElementById('stat-saved');if(ss)ss.textContent=savedSet.size;
 }
-function enrichP(id){
+
+async function enrichP(id,btn){
   const s=getS();if(!s)return;
-  const u=getU();
-  if(u[s.email]){u[s.email].credits=Math.max(0,(u[s.email].credits||0)-3);saveU(u);s.credits=u[s.email].credits;saveS(s);document.getElementById('credit-count').textContent=u[s.email].credits.toLocaleString();}
-  showToast('Profil enrichi avec succès (−3 crédits)');
+  btn.disabled=true;btn.textContent='…';
+  try {
+    const resp=await fetch('/api/apollo/enrich',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({person_id:id})});
+    const d=await resp.json();
+    if(d.email && d.email!=='Non disponible'){
+      showToast(`✉️ ${d.email}`);
+      btn.textContent='✓ Email';btn.classList.add('en');
+    } else {
+      showToast('Email non disponible sur ce plan');
+      btn.textContent='⚡ Enrichir';
+    }
+    // Déduire crédits
+    const u=getU();
+    if(u[s.email]){u[s.email].credits=Math.max(0,(u[s.email].credits||0)-3);saveU(u);s.credits=u[s.email].credits;saveS(s);document.getElementById('credit-count').textContent=u[s.email].credits.toLocaleString();}
+  } catch(e){
+    btn.textContent='⚡ Enrichir';btn.disabled=false;
+    showToast('Erreur enrichissement');
+  }
+  btn.disabled=false;
 }
+
 function exportCSV(){
-  const rows=[['Nom','Titre','Entreprise','Localisation','Score']];
-  PROSPECTS.forEach(p=>rows.push([p.name,p.title,p.company,p.loc,p.score]));
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}));a.download='prospects-iaprospectai.csv';a.click();
+  if(!currentProspects.length){showToast('Lancez une recherche d\'abord');return;}
+  const rows=[['Nom','Titre','Entreprise','Localisation','Score','Email','LinkedIn']];
+  currentProspects.forEach(p=>rows.push([p.name,p.title,p.company,p.location,p.score,p.email||'',p.linkedin||'']));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'}));a.download='prospects-iaprospectai.csv';a.click();
   showToast('Export CSV téléchargé');
 }
+
 function renderSavedPage(c){
-  const saved=PROSPECTS.filter(p=>savedSet.has(p.id));
+  const saved=currentProspects.filter(p=>savedSet.has(p.id||p.name));
   if(!saved.length){c.innerHTML=`<div class="empty-state"><div class="ei">✦</div><p>Aucun prospect sauvegardé pour l'instant</p><button class="btn btn-gold" onclick="setPage('search',document.querySelector('.ni'))" style="margin-top:16px">Rechercher →</button></div>`;return;}
-  c.innerHTML=`<div class="tw"><table><thead><tr><th>Prospect</th><th>Entreprise</th><th>Score</th><th>Actions</th></tr></thead><tbody>${saved.map(p=>`<tr><td><div class="pcc"><div class="pav" style="background:${p.bg};color:${p.cl}">${p.av}</div><div><div class="pn">${p.name}</div><div class="pt">${p.title}</div></div></div></td><td><div class="cn">${p.company}</div></td><td><span class="badge ${p.score}">${p.score==='hot'?'🔥 HOT':p.score==='warm'?'⚡ WARM':'❄️ COLD'}</span></td><td><button class="ab" onclick="showToast('Séquence créée')">→ Séquence</button></td></tr>`).join('')}</tbody></table></div>`;
+  c.innerHTML=`<div class="tw"><table><thead><tr><th>Prospect</th><th>Entreprise</th><th>Score</th><th>Email</th><th>Actions</th></tr></thead><tbody>${saved.map((p,i)=>{const col=getAvatarColor(i);return`<tr><td><div class="pcc"><div class="pav" style="background:${col.bg};color:${col.cl}">${p.avatar||'??'}</div><div><div class="pn">${p.name}</div><div class="pt">${p.title}</div></div></div></td><td><div class="cn">${p.company}</div></td><td><span class="badge ${p.score}">${p.score==='hot'?'🔥 HOT':p.score==='warm'?'⚡ WARM':'❄️ COLD'}</span></td><td style="font-size:12px;color:var(--muted)">${p.email||'—'}</td><td><button class="ab" onclick="showToast('Séquence créée')">→ Séquence</button></td></tr>`;}).join('')}</tbody></table></div>`;
 }
 
 // Billing
@@ -1517,12 +1615,4 @@ function showToast(m){const t=document.getElementById('toast');t.textContent=m;t
     return;
   }
   const s=getS();
-  if(!s){showScreen('landing');return;}
-  const u=getU();const usr=u[s.email];
-  if(!usr){clrS();showScreen('landing');return;}
-  if(!usr.plan){showScreen('pricing-full');renderPricingPlans();}
-  else loadApp();
-})();
-</script>
-</body>
-</html>
+  if(!s){sh
