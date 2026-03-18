@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProspectAI — Trouvez vos clients</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a28;--border:#2a2a40;--accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--text:#e8e8f0;--muted:#7070a0;--radius:12px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(108,99,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(108,99,255,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+.screen{display:none;position:relative;z-index:1;}
+.screen.active{display:flex;}
+
+/* AUTH */
+#screen-auth{min-height:100vh;align-items:center;justify-content:center;}
+.auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:420px;animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.auth-logo{display:flex;align-items:center;gap:10px;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:32px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.auth-tabs{display:flex;background:var(--surface2);border-radius:10px;padding:4px;gap:4px;margin-bottom:28px;}
+.auth-tab{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;}
+.auth-tab.active{background:var(--accent);color:#fff;}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.field label{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.03em;}
+.field input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;width:100%;}
+.field input:focus{border-color:var(--accent);}
+.err-msg{font-size:12px;color:var(--accent2);margin-top:-10px;margin-bottom:10px;display:none;}
+.err-msg.show{display:block;}
+.btn-full{width:100%;padding:12px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;}
+.btn-full:hover:not(:disabled){background:#7d74ff;transform:translateY(-1px);}
+.btn-full:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.auth-sep{text-align:center;font-size:12px;color:var(--muted);margin:16px 0;}
+.auth-footer{text-align:center;font-size:13px;color:var(--muted);margin-top:20px;}
+.auth-footer a{color:var(--accent);cursor:pointer;}
+.auth-footer a:hover{text-decoration:underline;}
+
+/* PRICING */
+#screen-pricing{min-height:100vh;flex-direction:column;align-items:center;padding:60px 20px;}
+.pricing-header{text-align:center;margin-bottom:48px;}
+.pricing-header h1{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;margin-bottom:12px;}
+.pricing-header p{color:var(--muted);font-size:16px;}
+.pricing-toggle{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px;gap:4px;margin-bottom:40px;}
+.ptoggle{padding:9px 24px;border-radius:7px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;}
+.ptoggle.active{background:var(--accent);color:#fff;}
+.save-pill{background:rgba(67,233,123,.15);color:var(--accent3);border:1px solid rgba(67,233,123,.3);font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:6px;}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:960px;width:100%;}
+.plan-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:transform .2s,border-color .2s;}
+.plan-card:hover{transform:translateY(-4px);border-color:var(--accent);}
+.plan-card.featured{border-color:var(--accent);background:linear-gradient(160deg,rgba(108,99,255,.08),var(--surface));}
+.plan-card.cur-plan{border-color:var(--accent3);}
+.ribbon{position:absolute;top:18px;right:-8px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;letter-spacing:.08em;padding:4px 18px;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,8px 50%);}
+.plan-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px;}
+.plan-desc{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.plan-price{display:flex;align-items:baseline;gap:4px;margin-bottom:4px;}
+.plan-price .cur{font-size:18px;color:var(--muted);}
+.plan-price .amt{font-family:'Syne',sans-serif;font-size:40px;font-weight:800;}
+.plan-price .per{font-size:13px;color:var(--muted);}
+.plan-annual-note{font-size:12px;color:var(--accent3);min-height:18px;margin-bottom:20px;}
+.plan-div{height:1px;background:var(--border);margin:16px 0;}
+.plan-feats{list-style:none;display:flex;flex-direction:column;gap:10px;flex:1;margin-bottom:24px;}
+.plan-feats li{font-size:13px;display:flex;align-items:center;gap:8px;}
+.fc{color:var(--accent3);}
+.fx{color:var(--border);}
+.plan-btn{padding:12px;border-radius:9px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;}
+.plan-btn.primary{background:var(--accent);color:#fff;}
+.plan-btn.primary:hover:not(:disabled){background:#7d74ff;}
+.plan-btn.outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.plan-btn.outline:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+.plan-btn.current{background:rgba(67,233,123,.12);color:var(--accent3);border:1px solid rgba(67,233,123,.3);cursor:default;}
+.plan-btn:disabled{opacity:.5;cursor:not-allowed;}
+.pricing-footer{margin-top:32px;font-size:13px;color:var(--muted);}
+.pricing-footer a{color:var(--accent);cursor:pointer;}
+
+/* SUCCESS */
+#screen-success{min-height:100vh;align-items:center;justify-content:center;}
+.success-card{background:var(--surface);border:1px solid rgba(67,233,123,.4);border-radius:20px;padding:56px 48px;text-align:center;max-width:460px;width:90%;animation:fadeUp .4s ease;}
+.success-icon{width:72px;height:72px;background:rgba(67,233,123,.12);border:2px solid var(--accent3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 24px;}
+.success-card h2{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:12px;}
+.success-card p{color:var(--muted);font-size:14px;line-height:1.7;margin-bottom:24px;}
+.success-plan{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 20px;font-size:14px;margin-bottom:28px;}
+.success-plan span{color:var(--accent3);font-weight:600;}
+
+/* APP */
+#screen-app{min-height:100vh;flex-direction:row;}
+.sidebar{width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 16px;gap:6px;flex-shrink:0;}
+.s-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;padding:8px 12px 24px;display:flex;align-items:center;gap:10px;}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:8px 12px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px;color:var(--muted);transition:all .15s;border:1px solid transparent;user-select:none;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(108,99,255,.12);color:var(--accent);border-color:rgba(108,99,255,.25);}
+.nav-item .ic{font-size:16px;width:20px;text-align:center;}
+.nbadge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600;}
+.sidebar-bot{margin-top:auto;border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:4px;}
+.user-card{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;}
+.avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.uname{font-size:13px;font-weight:500;}
+.uplan{font-size:11px;color:var(--accent3);}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.topbar h1{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;flex:1;}
+.credits-badge{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);padding:8px 16px;border-radius:8px;font-size:13px;color:var(--muted);}
+.credits-badge strong{color:var(--accent3);font-size:15px;}
+.btn{padding:9px 18px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:#7d74ff;transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);}
+.content{flex:1;overflow-y:auto;padding:32px;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--sc,var(--accent));}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;}
+.stat-value{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:4px;}
+.stat-sub{font-size:12px;color:var(--muted);}
+.stat-up{color:var(--accent3);}
+
+/* SEARCH */
+.search-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
+.search-panel h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px;}
+.filter-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+.fi{display:flex;flex-direction:column;gap:6px;}
+.fi label{font-size:12px;color:var(--muted);font-weight:500;}
+.fi input,.fi select{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;width:100%;}
+.fi input:focus,.fi select:focus{border-color:var(--accent);}
+.fi select option{background:var(--surface);}
+.filter-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.tag{background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);color:var(--accent);padding:4px 12px;border-radius:20px;font-size:12px;display:flex;align-items:center;gap:6px;cursor:default;}
+.tag span{cursor:pointer;opacity:.6;}
+.tag span:hover{opacity:1;}
+.search-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.search-actions .rcount{font-size:13px;color:var(--muted);margin-left:auto;}
+.results-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.results-header h2{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;flex:1;}
+
+/* TABLE */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:1px solid var(--border);background:var(--surface2);}
+th{padding:12px 16px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;}
+tbody tr{border-bottom:1px solid rgba(42,42,64,.6);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:14px 16px;font-size:13px;vertical-align:middle;}
+.pc{display:flex;align-items:center;gap:12px;}
+.pav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;font-family:'Syne',sans-serif;}
+.pname{font-weight:500;}
+.ptitle{font-size:12px;color:var(--muted);}
+.score-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+.hot{background:rgba(255,101,132,.15);color:var(--accent2);border:1px solid rgba(255,101,132,.3);}
+.warm{background:rgba(255,170,59,.15);color:#ffaa3b;border:1px solid rgba(255,170,59,.3);}
+.cold{background:rgba(108,99,255,.12);color:#8b84ff;border:1px solid rgba(108,99,255,.3);}
+.sdot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.sdot.g{background:var(--accent3);box-shadow:0 0 6px var(--accent3);}
+.sdot.y{background:#ffaa3b;}
+.sdot.r{background:var(--border);}
+.act-cell{display:flex;gap:6px;}
+.act-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:all .12s;white-space:nowrap;}
+.act-btn:hover{background:var(--surface2);color:var(--text);}
+.act-btn.sv{color:var(--accent);border-color:rgba(108,99,255,.3);}
+.act-btn.en{color:var(--accent3);border-color:rgba(67,233,123,.3);}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);}
+.page-btns{display:flex;gap:6px;}
+.pbtn{width:32px;height:32px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.pbtn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.pbtn:hover:not(.active){background:var(--surface2);color:var(--text);}
+
+/* SEARCHING */
+.searching-state{display:none;flex-direction:column;align-items:center;padding:80px 20px;gap:16px;}
+.searching-state.vis{display:flex;}
+.searching-text{font-size:14px;color:var(--muted);animation:pulse 1.5s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+/* BILLING PAGE */
+.billing-wrap{max-width:1000px;}
+.billing-current{background:var(--surface);border:1px solid var(--accent);border-radius:var(--radius);padding:24px;margin-bottom:28px;display:flex;align-items:flex-start;gap:24px;position:relative;overflow:hidden;}
+.billing-current::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(108,99,255,.08),transparent 60%);pointer-events:none;}
+.plan-badge-cur{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+.bci{flex:1;}
+.bci h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:4px;}
+.bci p{font-size:13px;color:var(--muted);}
+.prog-wrap{margin-top:12px;}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px;}
+.prog-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .8s ease;}
+.btoggle-wrap{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:4px;gap:4px;width:fit-content;margin-bottom:28px;}
+.btoggle{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;background:transparent;color:var(--muted);transition:all .15s;}
+.btoggle.active{background:var(--accent);color:#fff;}
+.invoices-table{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px;}
+.inv-paid{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(67,233,123,.12);color:var(--accent3);}
+.dl-link{color:var(--accent);font-size:12px;cursor:pointer;}
+.dl-link:hover{text-decoration:underline;}
+.sec-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:16px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,10,15,.85);backdrop-filter:blur(6px);z-index:50;display:none;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:560px;max-width:95vw;overflow:hidden;animation:fadeUp .25s ease;}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.modal-header h3{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;flex:1;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0 4px;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.ai-output{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;font-size:13px;line-height:1.7;color:var(--text);min-height:120px;max-height:280px;overflow-y:auto;margin-top:16px;white-space:pre-wrap;}
+.mg12{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* SPINNER */
+.spinner{border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--accent3);color:var(--accent3);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transform:translateY(16px);transition:all .3s;z-index:200;pointer-events:none;max-width:320px;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;padding:80px 20px;gap:12px;color:var(--muted);}
+.empty-state .ei{font-size:48px;opacity:.3;}
+.empty-state p{font-size:14px;}
+
+@media(max-width:900px){.filter-grid{grid-template-columns:repeat(2,1fr)}.stats-row{grid-template-columns:repeat(2,1fr)}.sidebar{display:none}.plans-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ═══ AUTH ═══ -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-card">
+    <div class="auth-logo"><div class="logo-icon">🎯</div>ProspectAI</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-btn-login" onclick="switchTab('login')">Connexion</button>
+      <button class="auth-tab" id="tab-btn-register" onclick="switchTab('register')">Créer un compte</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="tab-login">
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="vous@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="err-msg" id="login-err"></div>
+      <button class="btn-full" id="login-btn" onclick="doLogin()">Se connecter</button>
+      <div class="auth-sep">— ou —</div>
+      <div class="auth-footer">Pas encore de compte ? <a onclick="switchTab('register')">Créer un compte gratuit</a></div>
+    </div>
+    <!-- REGISTER -->
+    <div id="tab-register" style="display:none">
+      <div class="field"><label>Prénom & Nom</label><input type="text" id="reg-name" placeholder="Sophie Dupont" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="vous@email.com" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="field"><label>Mot de passe</label><input type="password" id="reg-pass" placeholder="Min. 6 caractères" onkeydown="if(event.key==='Enter')doRegister()"></div>
+      <div class="err-msg" id="reg-err"></div>
+      <button class="btn-full" id="reg-btn" onclick="doRegister()">Créer mon compte</button>
+      <div class="auth-footer">Déjà un compte ? <a onclick="switchTab('login')">Se connecter</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PRICING ═══ -->
+<div id="screen-pricing" class="screen">
+  <div class="pricing-header">
+    <h1>Choisissez votre plan</h1>
+    <p>Commencez à trouver vos prospects dès aujourd'hui. Annulez à tout moment.</p>
+  </div>
+  <div class="pricing-toggle">
+    <button class="ptoggle active" onclick="setPricingCycle('monthly')">Mensuel</button>
+    <button class="ptoggle" onclick="setPricingCycle('annual')">Annuel <span class="save-pill">−33%</span></button>
+  </div>
+  <div class="plans-grid" id="pricing-plans-grid"></div>
+  <div class="pricing-footer">Déjà un compte payant ? <a onclick="loadApp()">Accéder au dashboard →</a></div>
+</div>
+
+<!-- ═══ SUCCESS ═══ -->
+<div id="screen-success" class="screen">
+  <div class="success-card">
+    <div class="success-icon">✓</div>
+    <h2>Paiement confirmé !</h2>
+    <p>Votre abonnement ProspectAI est maintenant actif. Vous recevrez un email de confirmation.</p>
+    <div class="success-plan" id="success-plan-info">Activation en cours…</div>
+    <button class="btn-full" onclick="loadApp()">→ Accéder à mon dashboard</button>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="screen-app" class="screen">
+  <aside class="sidebar">
+    <div class="s-logo"><div class="logo-icon">🎯</div>ProspectAI</div>
+    <div class="nav-label">Discover</div>
+    <div class="nav-item active" onclick="setPage('search',this)"><span class="ic">🔍</span> Search</div>
+    <div class="nav-item" onclick="setPage('saved',this)"><span class="ic">⭐</span> Sauvegardés <span class="nbadge" id="saved-count">0</span></div>
+    <div class="nav-item" onclick="setPage('lists',this)"><span class="ic">📋</span> Listes</div>
+    <div class="nav-label">Outreach</div>
+    <div class="nav-item" onclick="setPage('sequences',this)"><span class="ic">📧</span> Séquences</div>
+    <div class="nav-item" onclick="openAIModal()"><span class="ic">✨</span> AI Writer <span class="nbadge" style="background:var(--accent2)">New</span></div>
+    <div class="nav-label">Compte</div>
+    <div class="nav-item" onclick="setPage('billing',this)"><span class="ic">💳</span> Abonnement</div>
+    <div class="nav-item" onclick="setPage('settings',this)"><span class="ic">⚙️</span> Paramètres</div>
+    <div class="sidebar-bot">
+      <div class="nav-item" onclick="doLogout()"><span class="ic">🚪</span> Déconnexion</div>
+      <div class="user-card">
+        <div class="avatar" id="app-avatar">?</div>
+        <div>
+          <div class="uname" id="app-uname">—</div>
+          <div class="uplan" id="app-uplan">—</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <h1 id="page-title">Prospect Search</h1>
+      <div class="credits-badge">💎 Crédits <strong id="credit-count">0</strong></div>
+      <button class="btn btn-ghost" onclick="openAIModal()">✨ AI Writer</button>
+      <button class="btn btn-primary" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="content" id="app-content"></div>
+  </main>
+</div>
+
+<!-- ═══ AI MODAL ═══ -->
+<div class="modal-overlay" id="ai-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="logo-icon" style="width:28px;height:28px;font-size:14px;flex-shrink:0">✨</div>
+      <h3>AI Outreach Writer</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="mg12">
+        <div class="fi"><label>Nom du prospect</label><input type="text" id="ai-name" value="Sophie Leclerc"></div>
+        <div class="fi"><label>Entreprise</label><input type="text" id="ai-company" value="Scaleway"></div>
+        <div class="fi"><label>Ton</label>
+          <select id="ai-tone"><option value="professionnel">Professionnel</option><option value="amical" selected>Amical</option><option value="direct">Direct</option><option value="casual">Casual</option></select>
+        </div>
+        <div class="fi"><label>Langue</label>
+          <select id="ai-lang"><option value="fr" selected>Français</option><option value="en">English</option></select>
+        </div>
+      </div>
+      <div class="fi" style="margin-top:12px"><label>Proposition de valeur</label>
+        <input type="text" id="ai-prop" value="Nous aidons les SaaS à doubler leur pipeline en 60 jours">
+      </div>
+      <div class="ai-output" id="ai-output"><span style="color:var(--muted);font-style:italic">Votre email personnalisé apparaîtra ici…</span></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="generateEmail()">✨ Générer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  STORAGE HELPERS
+// ═══════════════════════════════════════
+const DB  = 'pai_users';
+const SES = 'pai_session';
+const getUsers   = () => { try { return JSON.parse(localStorage.getItem(DB))  || {}; } catch { return {}; } };
+const saveUsers  = u  => localStorage.setItem(DB, JSON.stringify(u));
+const getSession = () => { try { return JSON.parse(localStorage.getItem(SES)); } catch { return null; } };
+const saveSession= s  => localStorage.setItem(SES, JSON.stringify(s));
+const clearSes   = () => localStorage.removeItem(SES);
+
+// ═══════════════════════════════════════
+//  SCREEN
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ═══════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('tab-login').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-btn-login').classList.toggle('active',    tab === 'login');
+  document.getElementById('tab-btn-register').classList.toggle('active', tab === 'register');
+}
+
+function setBtnLoading(btnId, loading, defaultText) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<div class="spinner" style="width:18px;height:18px"></div>'
+    : defaultText;
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideErr(id) { document.getElementById(id).classList.remove('show'); }
+
+function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('login-pass').value;
+  hideErr('login-err');
+  if (!email || !pass) { showErr('login-err', 'Veuillez remplir tous les champs.'); return; }
+  setBtnLoading('login-btn', true);
+  setTimeout(() => {
+    const users = getUsers();
+    const user  = users[email];
+    if (!user || user.pass !== btoa(pass)) {
+      showErr('login-err', 'Email ou mot de passe incorrect.');
+      setBtnLoading('login-btn', false, 'Se connecter');
+      return;
+    }
+    saveSession({ email, name: user.name, plan: user.plan, planName: user.planName, credits: user.credits });
+    afterLogin(user);
+  }, 500);
+}
+
+function doRegister() {
+  const name  = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass  = document.getElementById('reg-pass').value;
+  hideErr('reg-err');
+  if (!name || !email || !pass) { showErr('reg-err', 'Veuillez remplir tous les champs.'); return; }
+  if (pass.length < 6) { showErr('reg-err', 'Mot de passe trop court (min. 6 caractères).'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('reg-err', 'Adresse email invalide.'); return; }
+  setBtnLoading('reg-btn', true);
+  setTimeout(() => {
+    const users = getUsers();
+    if (users[email]) { showErr('reg-err', 'Cet email est déjà utilisé.'); setBtnLoading('reg-btn', false, 'Créer mon compte'); return; }
+    const newUser = { name, pass: btoa(pass), plan: null, planName: null, credits: 0, joinedAt: Date.now() };
+    users[email] = newUser;
+    saveUsers(users);
+    saveSession({ email, name, plan: null, planName: null, credits: 0 });
+    afterLogin(newUser);
+  }, 500);
+}
+
+function afterLogin(user) {
+  if (!user.plan) { showScreen('pricing'); renderPricingPlans(); }
+  else { loadApp(); }
+}
+
+function doLogout() {
+  clearSes();
+  showScreen('auth');
+  switchTab('login');
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value  = '';
+  setBtnLoading('login-btn', false, 'Se connecter');
+}
+
+// ═══════════════════════════════════════
+//  PRICING
+// ═══════════════════════════════════════
+let pCycle = 'monthly';
+const PLANS = {
+  monthly: [
+    { key:'starter', name:'Starter', desc:'Idéal pour débuter', price:29, credits:500, feats:['500 crédits/mois','5 000 prospects/mois','Export CSV','Recherche avancée'], locked:['AI Writer ✨','Enrichissement auto','API Access'] },
+    { key:'pro',     name:'Pro',     desc:'Pour les équipes sérieuses', price:79, credits:2000, popular:true, feats:['2 000 crédits/mois','25 000 prospects/mois','Export CSV illimité','Recherche avancée','AI Writer ✨','Enrichissement auto'], locked:['API Access'] },
+    { key:'agency',  name:'Agency',  desc:'Pour agences & grandes équipes', price:199, credits:10000, feats:['10 000 crédits/mois','Prospects illimités','Export CSV illimité','Recherche avancée','AI Writer ✨','Enrichissement auto','API Access + Webhooks'], locked:[] },
+  ],
+  annual: [
+    { key:'starter', name:'Starter', desc:'Idéal pour débuter', price:19, annual:228, credits:500, feats:['500 crédits/mois','5 000 prospects/mois','Export CSV','Recherche avancée'], locked:['AI Writer ✨','Enrichissement auto','API Access'] },
+    { key:'pro',     name:'Pro',     desc:'Pour les équipes sérieuses', price:53, annual:636, credits:2000, popular:true, feats:['2 000 crédits/mois','25 000 prospects/mois','Export CSV illimité','Recherche avancée','AI Writer ✨','Enrichissement auto'], locked:['API Access'] },
+    { key:'agency',  name:'Agency',  desc:'Pour agences & grandes équipes', price:133, annual:1596, credits:10000, feats:['10 000 crédits/mois','Prospects illimités','Export CSV illimité','Recherche avancée','AI Writer ✨','Enrichissement auto','API Access + Webhooks'], locked:[] },
+  ]
+};
+
+function setPricingCycle(c) {
+  pCycle = c;
+  document.querySelectorAll('.ptoggle').forEach((b,i) => b.classList.toggle('active',(i===0&&c==='monthly')||(i===1&&c==='annual')));
+  renderPricingPlans();
+}
+
+function renderPricingPlans() {
+  const plans = PLANS[pCycle];
+  document.getElementById('pricing-plans-grid').innerHTML = plans.map(p => `
+    <div class="plan-card ${p.popular?'featured':''}">
+      ${p.popular?'<div class="ribbon">Populaire</div>':''}
+      <div class="plan-name">${p.name}</div>
+      <div class="plan-desc">${p.desc}</div>
+      <div class="plan-price"><span class="cur">€</span><span class="amt">${p.price}</span><span class="per">/mois</span></div>
+      <div class="plan-annual-note">${pCycle==='annual'?'Facturé '+p.annual+' €/an · 2 mois offerts':''}</div>
+      <div class="plan-div"></div>
+      <ul class="plan-feats">
+        ${p.feats.map(f=>`<li><span class="fc">✓</span>${f}</li>`).join('')}
+        ${p.locked.map(f=>`<li><span class="fx">✗</span><span style="color:var(--muted)">${f}</span></li>`).join('')}
+      </ul>
+      <button class="plan-btn ${p.popular?'primary':'outline'}" id="pbtn-${p.key}"
+        onclick="choosePlan('${p.key}','${p.name}',${p.price},${p.credits})">
+        Choisir ${p.name} →
+      </button>
+    </div>
+  `).join('');
+}
+
+async function choosePlan(key, name, price, credits) {
+  const session = getSession();
+  if (!session) { showScreen('auth'); return; }
+  const btn = document.getElementById('pbtn-' + key);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;margin:0 auto"></div>'; }
+
+  // Try real Mollie payment
+  try {
+    const resp = await fetch('/api/mollie/create-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ planKey: key+'_'+pCycle, customerEmail: session.email, planName: name, credits })
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.checkoutUrl) {
+        localStorage.setItem('pai_pending', JSON.stringify({ email: session.email, key, name, credits }));
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+    }
+  } catch(_) {}
+
+  // Demo mode — activate directly
+  activatePlan(session.email, key, name, credits);
+}
+
+function activatePlan(email, key, name, credits) {
+  const users = getUsers();
+  if (!users[email]) return;
+  users[email].plan     = key;
+  users[email].planName = name;
+  users[email].credits  = credits;
+  users[email].activatedAt = Date.now();
+  saveUsers(users);
+  const s = getSession();
+  if (s) { s.plan = key; s.planName = name; s.credits = credits; saveSession(s); }
+  document.getElementById('success-plan-info').innerHTML =
+    `Plan activé : <span>${name} — ${credits.toLocaleString()} crédits/mois</span>`;
+  showScreen('success');
+}
+
+// ═══════════════════════════════════════
+//  APP
+// ═══════════════════════════════════════
+function loadApp() {
+  const session = getSession();
+  if (!session) { showScreen('auth'); return; }
+  const users = getUsers();
+  const user  = users[session.email] || {};
+  // Sync session with latest DB
+  if (user.credits !== undefined) { session.credits = user.credits; session.planName = user.planName; saveSession(session); }
+  const initials = (session.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('app-avatar').textContent   = initials;
+  document.getElementById('app-uname').textContent    = session.name || session.email;
+  document.getElementById('app-uplan').textContent    = '✦ ' + (user.planName || 'Gratuit');
+  document.getElementById('credit-count').textContent = (user.credits||0).toLocaleString();
+  showScreen('app');
+  setPage('search', document.querySelector('.nav-item'));
+}
+
+let activePage = 'search';
+function setPage(page, el) {
+  activePage = page;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  const titles = { search:'Prospect Search', saved:'Sauvegardés', lists:'Mes Listes', sequences:'Séquences', billing:'Abonnement', settings:'Paramètres' };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  const c = document.getElementById('app-content');
+  if (page === 'search')  renderSearchPage(c);
+  else if (page === 'billing') renderBillingPage(c);
+  else if (page === 'saved')   renderSavedPage(c);
+  else renderComingSoon(c, page);
+}
+
+function renderComingSoon(c) {
+  c.innerHTML = `<div class="empty-state"><div class="ei">🚧</div><p>Page en cours de développement</p></div>`;
+}
+
+// ═══════════════════════════════════════
+//  SEARCH PAGE
+// ═══════════════════════════════════════
+const PROSPECTS = [
+  {id:1,name:'Sophie Leclerc',title:'Head of Growth',company:'Scaleway',size:'201-500',loc:'Paris, FR',score:'hot',st:'g',av:'SL',c:'#6c63ff'},
+  {id:2,name:'Thomas Renard',title:'VP Marketing',company:'Doctrine',size:'51-200',loc:'Lyon, FR',score:'hot',st:'g',av:'TR',c:'#ff6584'},
+  {id:3,name:'Camille Dupont',title:'Dir. of Growth',company:'Swile',size:'201-500',loc:'Bordeaux, FR',score:'warm',st:'y',av:'CD',c:'#43e97b'},
+  {id:4,name:'Lucas Martin',title:'Chief Revenue Officer',company:'Alan',size:'501+',loc:'Paris, FR',score:'hot',st:'g',av:'LM',c:'#ffaa3b'},
+  {id:5,name:'Emma Bernard',title:'Growth Lead',company:'Pennylane',size:'51-200',loc:'Nantes, FR',score:'warm',st:'y',av:'EB',c:'#ff6584'},
+  {id:6,name:'Hugo Laurent',title:'Head of Demand Gen',company:'Contentsquare',size:'501+',loc:'Toulouse, FR',score:'cold',st:'r',av:'HL',c:'#6c63ff'},
+  {id:7,name:'Léa Moreau',title:'VP Growth',company:'Aircall',size:'201-500',loc:'Marseille, FR',score:'hot',st:'g',av:'LM',c:'#43e97b'},
+  {id:8,name:'Nicolas Petit',title:'Head of Acquisition',company:'Payfit',size:'201-500',loc:'Paris, FR',score:'warm',st:'y',av:'NP',c:'#ffaa3b'},
+];
+let savedSet = new Set();
+
+function renderSearchPage(c) {
+  c.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-card" style="--sc:var(--accent)"><div class="stat-label">Total Prospects</div><div class="stat-value">48 392</div><div class="stat-sub"><span class="stat-up">↑ 12%</span> ce mois</div></div>
+      <div class="stat-card" style="--sc:var(--accent3)"><div class="stat-label">Enrichis aujourd'hui</div><div class="stat-value">247</div><div class="stat-sub"><span class="stat-up">↑ 8%</span> vs hier</div></div>
+      <div class="stat-card" style="--sc:var(--accent2)"><div class="stat-label">Emails vérifiés</div><div class="stat-value">91.4%</div><div class="stat-sub">3 crédits/vérif.</div></div>
+      <div class="stat-card" style="--sc:#ffaa3b"><div class="stat-label">Sauvegardés</div><div class="stat-value" id="stat-saved">${savedSet.size}</div><div class="stat-sub">Dans vos listes</div></div>
+    </div>
+    <div class="search-panel">
+      <h2>🔍 Filtres de recherche</h2>
+      <div class="filter-grid">
+        <div class="fi"><label>Titre</label><input type="text" value="Head of Growth" placeholder="ex. VP Sales"></div>
+        <div class="fi"><label>Industrie</label><select><option>SaaS / Software</option><option>Fintech</option><option>E-Commerce</option><option>Healthcare</option></select></div>
+        <div class="fi"><label>Taille entreprise</label><select><option>51–200 employés</option><option>1–10</option><option>11–50</option><option>201–500</option><option>500+</option></select></div>
+        <div class="fi"><label>Localisation</label><input type="text" value="France" placeholder="ex. Paris, Lyon…"></div>
+        <div class="fi"><label>Séniorité</label><select><option>VP / Directeur</option><option>C-Level</option><option>Manager</option></select></div>
+        <div class="fi"><label>Technologie</label><input type="text" value="HubSpot" placeholder="ex. Salesforce"></div>
+        <div class="fi"><label>Revenue</label><select><option>$1M – $10M</option><option>&lt; $1M</option><option>$10M–$50M</option><option>$100M+</option></select></div>
+        <div class="fi"><label>Email</label><select><option>Email vérifié ✓</option><option>Tout contact</option></select></div>
+      </div>
+      <div class="filter-tags" id="filter-tags">
+        <div class="tag">Head of Growth <span onclick="this.closest('.tag').remove()">×</span></div>
+        <div class="tag">SaaS <span onclick="this.closest('.tag').remove()">×</span></div>
+        <div class="tag">France <span onclick="this.closest('.tag').remove()">×</span></div>
+        <div class="tag">HubSpot <span onclick="this.closest('.tag').remove()">×</span></div>
+      </div>
+      <div class="search-actions">
+        <button class="btn btn-primary" onclick="runSearch()">🔍 Rechercher</button>
+        <button class="btn btn-ghost" onclick="document.getElementById('filter-tags').innerHTML='';showToast('🗑 Filtres réinitialisés')">Réinitialiser</button>
+        <button class="btn btn-ghost" onclick="showToast('💾 Recherche sauvegardée')">💾 Sauvegarder</button>
+        <span class="rcount">8 sur 3 427 résultats</span>
+      </div>
+    </div>
+    <div class="results-header">
+      <h2>Résultats</h2>
+      <button class="btn btn-ghost" style="font-size:12px" onclick="document.querySelectorAll('#ptbody input[type=checkbox]').forEach(c=>c.checked=true);showToast('✓ 8 sélectionnés')">☑ Tout sélectionner</button>
+      <button class="btn btn-ghost" style="font-size:12px" onclick="showToast('⚡ Enrichissement en cours…')">⚡ Enrichir tout</button>
+    </div>
+    <div class="table-wrap">
+      <div class="searching-state" id="ssstate">
+        <div class="spinner" style="width:36px;height:36px;border-width:3px"></div>
+        <div class="searching-text">Scan de 48M+ profils…</div>
+      </div>
+      <table id="ptable">
+        <thead><tr>
+          <th style="width:36px"><input type="checkbox" style="accent-color:var(--accent)" onchange="document.querySelectorAll('#ptbody input').forEach(c=>c.checked=this.checked)"></th>
+          <th>Prospect</th><th>Entreprise</th><th>Localisation</th><th>Score</th><th>Statut</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="ptbody"></tbody>
+      </table>
+      <div class="pagination">
+        <span>Page 1 sur 429</span>
+        <div class="page-btns">
+          <button class="pbtn">‹</button>
+          <button class="pbtn active">1</button>
+          <button class="pbtn" onclick="showToast('📄 Page 2')">2</button>
+          <button class="pbtn" onclick="showToast('📄 Page 3')">3</button>
+          <button class="pbtn">…</button>
+          <button class="pbtn">429</button>
+          <button class="pbtn">›</button>
+        </div>
+      </div>
+    </div>`;
+  buildTable();
+}
+
+function buildTable() {
+  const tbody = document.getElementById('ptbody');
+  if (!tbody) return;
+  tbody.innerHTML = PROSPECTS.map(p => `
+    <tr>
+      <td><input type="checkbox" style="accent-color:var(--accent)"></td>
+      <td><div class="pc"><div class="pav" style="background:${p.c}22;color:${p.c}">${p.av}</div><div><div class="pname">${p.name}</div><div class="ptitle">${p.title}</div></div></div></td>
+      <td><div class="pname">${p.company}</div><div class="ptitle">${p.size} emp.</div></td>
+      <td style="color:var(--muted);font-size:13px">${p.loc}</td>
+      <td><span class="score-pill ${p.score}">${p.score==='hot'?'🔥':p.score==='warm'?'⚡':'❄️'} ${p.score.charAt(0).toUpperCase()+p.score.slice(1)}</span></td>
+      <td><span class="sdot ${p.st}"></span></td>
+      <td><div class="act-cell">
+        <button class="act-btn en" onclick="enrichP(${p.id})">⚡ Enrich</button>
+        <button class="act-btn sv" id="sb-${p.id}" onclick="saveP(${p.id},this)">${savedSet.has(p.id)?'★ Sauvé':'☆ Sauver'}</button>
+        <button class="act-btn" onclick="showToast('👤 ${p.name} — ${p.company}')">→</button>
+      </div></td>
+    </tr>`).join('');
+}
+
+function runSearch() {
+  const tbl = document.getElementById('ptable');
+  const ss  = document.getElementById('ssstate');
+  if (!tbl || !ss) return;
+  tbl.style.opacity = '.3'; ss.classList.add('vis');
+  setTimeout(() => { tbl.style.opacity='1'; ss.classList.remove('vis'); showToast('✓ 3 427 prospects trouvés'); }, 1400);
+}
+
+function saveP(id, btn) {
+  if (savedSet.has(id)) { savedSet.delete(id); btn.textContent='☆ Sauver'; btn.classList.remove('en'); btn.classList.add('sv'); }
+  else { savedSet.add(id); btn.textContent='★ Sauvé'; btn.classList.remove('sv'); btn.classList.add('en'); showToast('⭐ Prospect sauvegardé !'); }
+  document.getElementById('saved-count').textContent = savedSet.size;
+  const ss = document.getElementById('stat-saved'); if (ss) ss.textContent = savedSet.size;
+}
+
+function enrichP(id) {
+  const s = getSession(); if (!s) return;
+  const users = getUsers();
+  if (users[s.email]) {
+    users[s.email].credits = Math.max(0,(users[s.email].credits||0)-3);
+    saveUsers(users);
+    s.credits = users[s.email].credits; saveSession(s);
+    document.getElementById('credit-count').textContent = users[s.email].credits.toLocaleString();
+  }
+  showToast('⚡ Profil enrichi (−3 crédits)');
+}
+
+function exportCSV() {
+  const rows = [['Nom','Titre','Entreprise','Localisation','Score']];
+  PROSPECTS.forEach(p=>rows.push([p.name,p.title,p.company,p.loc,p.score]));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}));
+  a.download = 'prospects.csv'; a.click();
+  showToast('⬇ Export CSV téléchargé');
+}
+
+// ═══════════════════════════════════════
+//  SAVED PAGE
+// ═══════════════════════════════════════
+function renderSavedPage(c) {
+  const saved = PROSPECTS.filter(p=>savedSet.has(p.id));
+  if (!saved.length) {
+    c.innerHTML = `<div class="empty-state"><div class="ei">⭐</div><p>Aucun prospect sauvegardé</p><button class="btn btn-primary" onclick="setPage('search',document.querySelector('.nav-item'))" style="margin-top:8px">Rechercher des prospects</button></div>`;
+    return;
+  }
+  c.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Prospect</th><th>Entreprise</th><th>Score</th><th>Actions</th></tr></thead>
+    <tbody>${saved.map(p=>`<tr>
+      <td><div class="pc"><div class="pav" style="background:${p.c}22;color:${p.c}">${p.av}</div><div><div class="pname">${p.name}</div><div class="ptitle">${p.title}</div></div></div></td>
+      <td>${p.company}</td>
+      <td><span class="score-pill ${p.score}">${p.score==='hot'?'🔥':p.score==='warm'?'⚡':'❄️'} ${p.score.charAt(0).toUpperCase()+p.score.slice(1)}</span></td>
+      <td><button class="act-btn" onclick="showToast('📧 Séquence créée pour ${p.name}')">📧 Séquence</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ═══════════════════════════════════════
+//  BILLING PAGE
+// ═══════════════════════════════════════
+let bCycle = 'monthly';
+function renderBillingPage(c) {
+  const s = getSession(); const users = getUsers(); const u = users[s?.email]||{};
+  const credits = u.credits||0; const used = Math.round(credits*.38);
+  const planName = u.planName||'Gratuit';
+  c.innerHTML = `
+    <div class="billing-wrap">
+      <div class="billing-current">
+        <span class="plan-badge-cur">✦ ${planName}</span>
+        <div class="bci">
+          <h3>Abonnement actuel — ${planName}</h3>
+          <p>Renouvellement le 16 avril 2026 · Facturé mensuellement</p>
+          <div class="prog-wrap">
+            <div class="prog-label"><span>Crédits utilisés ce mois</span><span><strong>${used.toLocaleString()}</strong> / ${credits.toLocaleString()}</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:${credits>0?38:0}%"></div></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;flex-shrink:0">
+          <button class="btn btn-ghost" onclick="showToast('📧 Email envoyé au support')">Gérer</button>
+          <button class="btn btn-ghost" style="color:var(--accent2);border-color:rgba(255,101,132,.3)" onclick="showToast('Résiliation annulée — contactez le support')">Résilier</button>
+        </div>
+      </div>
+      <div class="btoggle-wrap">
+        <button class="btoggle ${bCycle==='monthly'?'active':''}" onclick="setBCycle('monthly')">Mensuel</button>
+        <button class="btoggle ${bCycle==='annual'?'active':''}" onclick="setBCycle('annual')">Annuel <span class="save-pill">−33%</span></button>
+      </div>
+      <div class="plans-grid" id="billing-plans-grid" style="margin-bottom:32px"></div>
+      <div class="sec-title">🧾 Historique des factures</div>
+      <div class="invoices-table"><table>
+        <thead><tr><th>Date</th><th>Description</th><th>Montant</th><th>Statut</th><th>Facture</th></tr></thead>
+        <tbody>
+          <tr><td>18 mars 2026</td><td>ProspectAI ${planName} — Mars 2026</td><td>79,00 €</td><td><span class="inv-paid">✓ Payée</span></td><td><a class="dl-link" onclick="showToast('⬇ Facture téléchargée')">Télécharger</a></td></tr>
+          <tr><td>16 fév. 2026</td><td>ProspectAI ${planName} — Fév. 2026</td><td>79,00 €</td><td><span class="inv-paid">✓ Payée</span></td><td><a class="dl-link" onclick="showToast('⬇ Facture téléchargée')">Télécharger</a></td></tr>
+          <tr><td>16 jan. 2026</td><td>ProspectAI ${planName} — Jan. 2026</td><td>79,00 €</td><td><span class="inv-paid">✓ Payée</span></td><td><a class="dl-link" onclick="showToast('⬇ Facture téléchargée')">Télécharger</a></td></tr>
+        </tbody>
+      </table></div>
+    </div>`;
+  renderBillingPlans();
+}
+
+function setBCycle(c) {
+  bCycle = c;
+  document.querySelectorAll('.btoggle').forEach((b,i)=>b.classList.toggle('active',(i===0&&c==='monthly')||(i===1&&c==='annual')));
+  renderBillingPlans();
+}
+
+function renderBillingPlans() {
+  const wrap = document.getElementById('billing-plans-grid'); if(!wrap) return;
+  const s=getSession(); const users=getUsers(); const curPlan=(users[s?.email]||{}).plan;
+  wrap.innerHTML = PLANS[bCycle].map(p=>`
+    <div class="plan-card ${p.popular?'featured':''} ${curPlan===p.key?'cur-plan':''}">
+      ${p.popular?'<div class="ribbon">Populaire</div>':''}
+      <div class="plan-name">${p.name}</div>
+      <div class="plan-desc">${p.desc}</div>
+      <div class="plan-price"><span class="cur">€</span><span class="amt">${p.price}</span><span class="per">/mois</span></div>
+      <div class="plan-annual-note">${bCycle==='annual'?'Facturé '+p.annual+' €/an':''}</div>
+      <div class="plan-div"></div>
+      <ul class="plan-feats">
+        ${p.feats.map(f=>`<li><span class="fc">✓</span>${f}</li>`).join('')}
+        ${p.locked.map(f=>`<li><span class="fx">✗</span><span style="color:var(--muted)">${f}</span></li>`).join('')}
+      </ul>
+      ${curPlan===p.key
+        ? `<button class="plan-btn current" disabled>✓ Plan actuel</button>`
+        : `<button class="plan-btn ${p.popular?'primary':'outline'}" id="bb-${p.key}"
+            onclick="upgradePlan('${p.key}','${p.name}',${p.price},${p.credits})">
+            ${curPlan?'Changer de plan →':'Choisir ce plan →'}
+           </button>`}
+    </div>`).join('');
+}
+
+async function upgradePlan(key, name, price, credits) {
+  const s = getSession(); if (!s) return;
+  const btn = document.getElementById('bb-'+key);
+  if (btn) { btn.disabled=true; btn.innerHTML='<div class="spinner" style="width:16px;height:16px;margin:0 auto"></div>'; }
+  try {
+    const resp = await fetch('/api/mollie/create-payment',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({planKey:key+'_'+bCycle, customerEmail:s.email, planName:name, credits})
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.checkoutUrl) {
+        localStorage.setItem('pai_pending', JSON.stringify({email:s.email,key,name,credits}));
+        window.location.href = data.checkoutUrl; return;
+      }
+    }
+  } catch(_) {}
+  // Demo: activate directly
+  activatePlan(s.email, key, name, credits);
+  showToast('✅ Plan '+name+' activé !');
+  setTimeout(()=>renderBillingPage(document.getElementById('app-content')),600);
+}
+
+// ═══════════════════════════════════════
+//  AI WRITER
+// ═══════════════════════════════════════
+function openAIModal() { document.getElementById('ai-modal').classList.add('open'); }
+function closeModal()   { document.getElementById('ai-modal').classList.remove('open'); }
+
+async function generateEmail() {
+  const out = document.getElementById('ai-output');
+  out.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="spinner" style="width:24px;height:24px;border-width:2px"></div></div>';
+  const body = {
+    name:    document.getElementById('ai-name').value,
+    company: document.getElementById('ai-company').value,
+    tone:    document.getElementById('ai-tone').value,
+    lang:    document.getElementById('ai-lang').value,
+    prop:    document.getElementById('ai-prop').value
+  };
+  try {
+    const resp = await fetch('/api/ai/generate-email', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    const text = data.email || '';
+    out.innerHTML = ''; let i=0;
+    (function type(){if(i<text.length){out.textContent=text.slice(0,++i);setTimeout(type,12);}})();
+  } catch(e) {
+    out.textContent = '❌ ' + e.message;
+  }
+}
+
+// ═══════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+(function init() {
+  // Check Mollie return
+  const params  = new URLSearchParams(window.location.search);
+  const payId   = params.get('id');
+  const pending = JSON.parse(localStorage.getItem('pai_pending')||'null');
+  if (payId && pending) {
+    localStorage.removeItem('pai_pending');
+    // Verify with server then activate
+    fetch('/api/mollie/payment/'+payId)
+      .then(r=>r.json())
+      .then(d=>{ if(d.status==='paid') activatePlan(pending.email,pending.key,pending.name,pending.credits); else showScreen('pricing'); })
+      .catch(()=>activatePlan(pending.email,pending.key,pending.name,pending.credits));
+    return;
+  }
+  const session = getSession();
+  if (!session) { showScreen('auth'); return; }
+  const users = getUsers();
+  const user  = users[session.email];
+  if (!user)   { clearSes(); showScreen('auth'); return; }
+  if (!user.plan) { showScreen('pricing'); renderPricingPlans(); }
+  else loadApp();
+})();
+</script>
+</body>
+</html>
