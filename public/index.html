@@ -1215,8 +1215,12 @@ function setLandingCycle(c,wrap){
   buildCards(PLANS[lCycle],lCycle,'landing-price-grid','goStartPlan');
 }
 function goStartPlan(key,name,price,credits){
-  // Depuis la landing — aller s'inscrire
   goToAuth('register');
+}
+
+// Render landing pricing after DOM ready
+function initLandingPricing(){
+  buildCards(PLANS['monthly'],'monthly','landing-price-grid','goStartPlan');
 }
 setLandingCycle('monthly');
 
@@ -1663,4 +1667,17 @@ function showToast(m){const t=document.getElementById('toast');t.textContent=m;t
     return;
   }
   const s=getS();
-  if(!s){sh
+  if(!s){showScreen('landing');return;}
+  const u=getU();const usr=u[s.email];
+  if(!usr){clrS();showScreen('landing');return;}
+  if(!usr.plan){showScreen('pricing-full');renderPricingPlans();}
+  else loadApp();
+})();
+
+// Render landing pricing on load
+document.addEventListener('DOMContentLoaded',function(){
+  initLandingPricing();
+});
+</script>
+</body>
+</html>
